@@ -79,7 +79,7 @@ python main.py day [OPTIONS]
 | `--path`     | Use this if you want to use another json token file.            |
 | `--day`      | Which day to show. Only today and tomorrow can be specified.    |
 
-### Help
+### Help:
 
 Each command are listed using the `--help` option
 
