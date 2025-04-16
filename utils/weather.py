@@ -20,7 +20,7 @@ icon_weight = {
 def weather_request(day):
     try:
         # Get api key from the open weather api
-        my_key = os.getenv("API_KEY")
+        my_key = os.getenv("OPENWEATHER_API_KEY")
         #Cachan city
         lat = "48.79"
         lon = "2.334"
