@@ -14,6 +14,7 @@
 
 - The `--week` option is not implemented yet
 - The non-compact display mode is currently unavailable
+- Weather location is hardcoded for now, you can change your location [here](https://github.com/DamienJabs/gcal-viewer/blob/main/utils/weather.py#L25)
 
 ## 🔧 Installation
 
