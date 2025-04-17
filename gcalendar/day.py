@@ -9,7 +9,7 @@ from utils.format import format_date, format_hour, format_email
 from utils.status import event_status, weather_status_icon
 from utils.weather import weather_temp, weather_status
 
-def gday(compact, path, day, ):
+def gday(compact, path, day):
     def my_calendar() -> str:
         # Return the connected email address 
         calendar = service.calendars().get(calendarId='primary').execute()
@@ -26,9 +26,8 @@ def gday(compact, path, day, ):
 
     def compact_calendar(start_date, end_of_day):
         print("\n" f"Hello {Color.green(format_email(my_calendar()))} You are connect to {Color.blue(my_calendar())}" + "\n")
-
         #Print weather and date time
-        print(weather_status_icon(weather_status(day)), weather_temp(day), "-", Color.cyan(format_date(start_date), bold=True), "-",  format_hour(str(datetime.now())))
+        print(weather_status_icon(weather_status(day, start_date)), weather_temp(day, start_date), "-", Color.cyan(format_date(start_date), bold=True), "-",  format_hour(str(datetime.now())))
 
         for event in get_events(start_date, end_of_day):
             #Whole day event are not in the same key as time slot event
