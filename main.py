@@ -3,8 +3,8 @@ import typer
 from pathlib import Path
 from auth.auth import gauth
 from auth.test import gtest
-from gcalendar.day import gday
-from gcalendar.week import gweek
+from gcalendar.event import day_event, week_event
+
 
 app = typer.Typer()
 
@@ -27,22 +27,22 @@ def test(path: str = typer.Option("~/.config/gcal-viewer/token.json", help="Use 
 @app.command("day")
 def day( compact: bool = typer.Option(False, "--compact", help="Use compact mode."),
         path: str = typer.Option("~/.config/gcal-viewer/token.json", help="Use this if you want to use another json token file."),
-        day: str = typer.Option("today", help="Which day to show. Only today and tomorrow can be specified")):
+        period: str = typer.Option("today", help="Which day to show. Only today and tomorrow can be specified")):
   """
   List events in Google Calender for whether today or tomorrow
   """
   token_path = Path(path).expanduser().resolve()
-  gday(compact, token_path, day)
+  day_event(compact, token_path, period)
 
 @app.command("week")
 def week( compact: bool = typer.Option(False, "--compact", help="Use compact mode."),
         path: str = typer.Option("~/.config/gcal-viewer/token.json", help="Use this if you want to use another json token file."),
-        week: str = typer.Option("actual", help="Which day to show. Only today and tomorrow can be specified")):
+        period: str = typer.Option("actual", help="Which week to show. Only actual and next can be specified")):
   """
   List events in Google Calender for whether today or tomorrow
   """
   token_path = Path(path).expanduser().resolve()
-  gweek(compact, token_path, week)
+  week_event(compact, token_path, period)
 
 if __name__ == '__main__':
   app()
