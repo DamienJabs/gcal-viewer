@@ -2,7 +2,6 @@ from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 
 import zoneinfo
-import re
 from datetime import datetime, timedelta
 from tabulate import tabulate
 
@@ -12,7 +11,6 @@ from utils.status import event_status, weather_status_icon
 from utils.weather import weather_temp, weather_status
 
 SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
-ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 
 def gauth(path):
     # Call the Calendar API
