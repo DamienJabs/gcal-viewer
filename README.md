@@ -7,14 +7,15 @@
 ## ✨ Features
 
 - Display today's or tomorrow's events from your Google Calendar
+- Display ongoing week or next week events from your Google Calendar
 - Optional weather forecast for events using OpenWeatherMap
 - Compact display mode for concise terminal output
 
 ## ⚠ Limitations
 
-- The `--week` option is not implemented yet
 - The non-compact display mode is currently unavailable
 - Weather location is hardcoded for now, you can change your location [here](https://github.com/DamienJabs/gcal-viewer/blob/main/utils/weather.py#L25)
+- OpenWeatherMap's free tier only allow 5 day weather forecast
 
 ## 🔧 Installation
 
@@ -78,7 +79,19 @@ python main.py day [OPTIONS]
 |--------------|-----------------------------------------------------------------|
 | `--compact`  | Use compact mode.                                               |
 | `--path`     | Use this if you want to use another json token file.            |
-| `--day`      | Which day to show. Only today and tomorrow can be specified.    |
+| `--period`   | Which day to show. Only today and tomorrow can be specified.    |
+
+---
+
+```bash
+python main.py week [OPTIONS]
+```
+
+| Option       | Description                                                     |
+|--------------|-----------------------------------------------------------------|
+| `--compact`  | Use compact mode.                                               |
+| `--path`     | Use this if you want to use another json token file.            |
+| `--period`   | Which week to show. Only actual and next can be specified.    |
 
 ### Help:
 
