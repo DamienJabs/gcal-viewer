@@ -2,7 +2,9 @@ from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 
 import zoneinfo
-from datetime import datetime, timedelta 
+import re
+from datetime import datetime, timedelta
+from tabulate import tabulate
 
 from utils.color import Color
 from utils.format import format_date, format_hour, format_email
@@ -10,6 +12,7 @@ from utils.status import event_status, weather_status_icon
 from utils.weather import weather_temp, weather_status
 
 SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
+ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 
 def gauth(path):
     # Call the Calendar API
@@ -63,6 +66,32 @@ def compact_calendar(service, start_date, end_date, calendar_email):
                 event["summary"],
                 "by",
                 Color.green(format_email(event["creator"].get("email")), bold=True))
+            
+def table_calendar(service, start_date, end_date, calendar_email):
+    events = get_events(service, start_date, end_date)
+    list_event = []
+    for event in events:
+        if event["start"].get("dateTime") == None:
+            line = [
+                "Day",
+                event_status([attendee.get("responseStatus") for attendee in event.get("attendees", []) if attendee.get("email") == calendar_email]),
+                Color.blue(event["summary"]),
+                format_email(event["creator"].get("email")),
+                len([attendee for attendee in event.get("attendees", []) if attendee.get("responseStatus") == "accepted"]),
+                event["hangoutLink"] if "hangoutLink" in event else ""
+            ]
+            list_event.append(line)
+        else:
+            line = [
+                format_hour(event["start"].get("dateTime")) + "-" +format_hour(event["end"].get("dateTime")),
+                event_status([attendee.get("responseStatus") for attendee in event.get("attendees", []) if attendee.get("email") == calendar_email]),
+                event["summary"],
+                format_email(event["creator"].get("email")),
+                len([attendee for attendee in event.get("attendees", []) if attendee.get("responseStatus") == "accepted"]),
+                event["hangoutLink"] if "hangoutLink" in event else ""
+            ]
+            list_event.append(line)
+    return list_event
 
 def day_event(compact, path, period):
     service = gauth(path)
@@ -73,16 +102,24 @@ def day_event(compact, path, period):
     tz = zoneinfo.ZoneInfo(calendar_timezone)
     start_date = get_start_day(period, tz)
     str_start_date = start_date.isoformat()
+    print("\n" f"Hello {Color.green(format_email(calendar_email))} You are connect to {Color.blue(calendar_email)}" + "\n")
 
     if compact:
-        print("\n" f"Hello {Color.green(format_email(calendar_email))} You are connect to {Color.blue(calendar_email)}" + "\n")
-        print(weather_status_icon(weather_status(period, str_start_date)), weather_temp(period, str_start_date), "-", Color.cyan(format_date(str_start_date), bold=True), "-",  format_hour(str(datetime.now())))
+        print(weather_status_icon(weather_status(period, str_start_date)), weather_temp(period, str_start_date), "-", Color.cyan(format_date(str_start_date), bold=True), "-",  format_hour(str(datetime.now())), "\n")
         end_date = start_date.replace(hour=23, minute=59, second=59, microsecond=999999)
         str_end_date = end_date.isoformat()
-        compact_calendar(service, str_start_date, str_end_date, calendar_email)
-        
+        compact_calendar(service, str_start_date, str_end_date, calendar_email)        
     else:
-        ...
+        headers = [Color.red("Time"), Color.red("Status"), Color.red("Event"),Color.red("Creator"), Color.red("Attendees"), Color.red("Link")]
+        table = []
+        end_date = start_date.replace(hour=23, minute=59, second=59, microsecond=999999)
+        str_end_date = end_date.isoformat()
+        end_date = start_date.replace(hour=23, minute=59, second=59, microsecond=999999)
+
+        print(weather_status_icon(weather_status(period, str_start_date)), weather_temp(period, str_start_date), "-", Color.cyan(format_date(str_start_date), bold=True), "-",  format_hour(str(datetime.now())), "\n")
+        table = table_calendar(service, str_start_date, str_end_date, calendar_email)
+        print(tabulate(table, headers, tablefmt="simple"))
+        
 
 def week_event(compact, path, period):
     service = gauth(path)
@@ -94,7 +131,7 @@ def week_event(compact, path, period):
     date_now = datetime.now(tz)
     start_date = get_start_day(period, tz)
     if compact:
-        print("\n" f"Hello {Color.green(format_email(calendar_email))} You are connect to {Color.blue(calendar_email)}" + "\n")
+        print("\n" f"Hello {Color.green(format_email(calendar_email))} You are connect to {Color.blue(calendar_email)}")
         for week_day in range(7):
             start_all_week_dates = start_date.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=week_day)
             str_start_all_week_dates = start_all_week_dates.isoformat()
@@ -107,6 +144,5 @@ def week_event(compact, path, period):
 
             print('\n', weather_status_icon(weather_status(period, str_start_all_week_dates)), weather_temp(period, str_start_all_week_dates), "-", color_day)
             compact_calendar(service, str_start_all_week_dates, str_end_all_week_dates, calendar_email)
-            
     else:
         ...
