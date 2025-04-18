@@ -3,8 +3,6 @@ import typer
 from pathlib import Path
 from auth.auth import gauth
 from auth.test import gtest
-#from gcalendar.day import gday
-#from gcalendar.week import gweek
 from gcalendar.event import day_event, week_event
 
 
