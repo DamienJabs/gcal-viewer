@@ -65,12 +65,13 @@ def compact_calendar(service, start_date, end_date, calendar_email):
                 "by",
                 Color.green(format_email(event["creator"].get("email")), bold=True))
             
-def table_calendar(service, start_date, end_date, calendar_email):
+def table_calendar(service, start_date, end_date, calendar_email, highlight=False):
     events = get_events(service, start_date, end_date)
     list_event = []
     show_date = True
     for event in events:
-        date_col = format_date(start_date) if show_date else ""
+        raw_date = format_date(start_date)
+        date_col = Color.cyan(raw_date) if show_date and highlight else (raw_date if show_date else "")
         if event["start"].get("dateTime") == None:
             line = [
                 date_col,
@@ -129,20 +130,17 @@ def week_event(path, period):
     tz = zoneinfo.ZoneInfo(calendar_timezone)
     date_now = datetime.now(tz)
     start_date = get_start_day(period, tz)
-    print("\n" f"Hello {Color.green(format_email(calendar_email))} You are connect to {Color.blue(calendar_email)}")
+    print("\n" f"Hello {Color.green(format_email(calendar_email))} You are connect to {Color.blue(calendar_email)}", "\n")
     weekly_events = []
     for week_day in range(7):
         start_all_week_dates = start_date.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=week_day)
         str_start_all_week_dates = start_all_week_dates.isoformat()
         end_all_week_dates = start_date.replace(hour=23, minute=59, second=59, microsecond=999999) + timedelta(days=week_day)
         str_end_all_week_dates = end_all_week_dates.isoformat()
-        color_day = Color.blue(format_date(str_start_all_week_dates))
-
-        if date_now.replace(hour=0, minute=0, second=0, microsecond=0).strftime("%Y-%m-%d") == start_all_week_dates.strftime("%Y-%m-%d"): 
-            color_day = Color.cyan(format_date(str_start_all_week_dates))
+        is_today = date_now.date() == start_all_week_dates.date()
 
         headers = [Color.red("Date"), Color.red("Time"), Color.red("Status"), Color.red("Event"),Color.red("Creator"), Color.red("Attendees"), Color.red("Link")]
-        day_events  = table_calendar(service, str_start_all_week_dates, str_end_all_week_dates, calendar_email)
+        day_events  = table_calendar(service, str_start_all_week_dates, str_end_all_week_dates, calendar_email, highlight=is_today)
         weekly_events.extend(day_events)
        
     print(tabulate(weekly_events, headers, tablefmt="simple"))
