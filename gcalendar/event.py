@@ -131,6 +131,7 @@ def week_event(path, period):
     date_now = datetime.now(tz)
     start_date = get_start_day(period, tz)
     print("\n" f"Hello {Color.green(format_email(calendar_email))} You are connect to {Color.blue(calendar_email)}", "\n")
+    print(Color.cyan(format_date(date_now.isoformat()), bold=True), "-",  format_hour(str(datetime.now())), "\n")
     weekly_events = []
     for week_day in range(7):
         start_all_week_dates = start_date.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=week_day)
