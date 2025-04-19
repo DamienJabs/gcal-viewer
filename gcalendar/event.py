@@ -68,9 +68,12 @@ def compact_calendar(service, start_date, end_date, calendar_email):
 def table_calendar(service, start_date, end_date, calendar_email):
     events = get_events(service, start_date, end_date)
     list_event = []
+    show_date = True
     for event in events:
+        date_col = format_date(start_date) if show_date else ""
         if event["start"].get("dateTime") == None:
             line = [
+                date_col,
                 "Day",
                 event_status([attendee.get("responseStatus") for attendee in event.get("attendees", []) if attendee.get("email") == calendar_email]),
                 Color.blue(event["summary"]),
@@ -79,8 +82,10 @@ def table_calendar(service, start_date, end_date, calendar_email):
                 event["hangoutLink"] if "hangoutLink" in event else ""
             ]
             list_event.append(line)
+            show_date = False
         else:
             line = [
+                date_col,
                 format_hour(event["start"].get("dateTime")) + "-" +format_hour(event["end"].get("dateTime")),
                 event_status([attendee.get("responseStatus") for attendee in event.get("attendees", []) if attendee.get("email") == calendar_email]),
                 event["summary"],
@@ -89,6 +94,7 @@ def table_calendar(service, start_date, end_date, calendar_email):
                 event["hangoutLink"] if "hangoutLink" in event else ""
             ]
             list_event.append(line)
+            show_date = False
     return list_event
 
 def day_event(compact, path, period):
@@ -100,26 +106,21 @@ def day_event(compact, path, period):
     tz = zoneinfo.ZoneInfo(calendar_timezone)
     start_date = get_start_day(period, tz)
     str_start_date = start_date.isoformat()
+    end_date = start_date.replace(hour=23, minute=59, second=59, microsecond=999999)
+    str_end_date = end_date.isoformat()
     print("\n" f"Hello {Color.green(format_email(calendar_email))} You are connect to {Color.blue(calendar_email)}" + "\n")
 
     if compact:
         print(weather_status_icon(weather_status(period, str_start_date)), weather_temp(period, str_start_date), "-", Color.cyan(format_date(str_start_date), bold=True), "-",  format_hour(str(datetime.now())), "\n")
-        end_date = start_date.replace(hour=23, minute=59, second=59, microsecond=999999)
-        str_end_date = end_date.isoformat()
         compact_calendar(service, str_start_date, str_end_date, calendar_email)        
     else:
-        headers = [Color.red("Time"), Color.red("Status"), Color.red("Event"),Color.red("Creator"), Color.red("Attendees"), Color.red("Link")]
-        table = []
-        end_date = start_date.replace(hour=23, minute=59, second=59, microsecond=999999)
-        str_end_date = end_date.isoformat()
-        end_date = start_date.replace(hour=23, minute=59, second=59, microsecond=999999)
-
+        headers = [Color.red("Date"), Color.red("Time"), Color.red("Status"), Color.red("Event"),Color.red("Creator"), Color.red("Attendees"), Color.red("Link")]
         print(weather_status_icon(weather_status(period, str_start_date)), weather_temp(period, str_start_date), "-", Color.cyan(format_date(str_start_date), bold=True), "-",  format_hour(str(datetime.now())), "\n")
         table = table_calendar(service, str_start_date, str_end_date, calendar_email)
         print(tabulate(table, headers, tablefmt="simple"))
         
 
-def week_event(compact, path, period):
+def week_event(path, period):
     service = gauth(path)
     calendar_email = get_calendar_email(service)
     #STRING_TIMEZONE
@@ -128,19 +129,20 @@ def week_event(compact, path, period):
     tz = zoneinfo.ZoneInfo(calendar_timezone)
     date_now = datetime.now(tz)
     start_date = get_start_day(period, tz)
-    if compact:
-        print("\n" f"Hello {Color.green(format_email(calendar_email))} You are connect to {Color.blue(calendar_email)}")
-        for week_day in range(7):
-            start_all_week_dates = start_date.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=week_day)
-            str_start_all_week_dates = start_all_week_dates.isoformat()
-            end_all_week_dates = start_date.replace(hour=23, minute=59, second=59, microsecond=999999) + timedelta(days=week_day)
-            str_end_all_week_dates = end_all_week_dates.isoformat()
-            color_day = Color.blue(format_date(str_start_all_week_dates))
+    print("\n" f"Hello {Color.green(format_email(calendar_email))} You are connect to {Color.blue(calendar_email)}")
+    weekly_events = []
+    for week_day in range(7):
+        start_all_week_dates = start_date.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=week_day)
+        str_start_all_week_dates = start_all_week_dates.isoformat()
+        end_all_week_dates = start_date.replace(hour=23, minute=59, second=59, microsecond=999999) + timedelta(days=week_day)
+        str_end_all_week_dates = end_all_week_dates.isoformat()
+        color_day = Color.blue(format_date(str_start_all_week_dates))
 
-            if date_now.replace(hour=0, minute=0, second=0, microsecond=0).strftime("%Y-%m-%d") == start_all_week_dates.strftime("%Y-%m-%d"): 
-                color_day = Color.cyan(format_date(str_start_all_week_dates))
+        if date_now.replace(hour=0, minute=0, second=0, microsecond=0).strftime("%Y-%m-%d") == start_all_week_dates.strftime("%Y-%m-%d"): 
+            color_day = Color.cyan(format_date(str_start_all_week_dates))
 
-            print('\n', weather_status_icon(weather_status(period, str_start_all_week_dates)), weather_temp(period, str_start_all_week_dates), "-", color_day)
-            compact_calendar(service, str_start_all_week_dates, str_end_all_week_dates, calendar_email)
-    else:
-        ...
+        headers = [Color.red("Date"), Color.red("Time"), Color.red("Status"), Color.red("Event"),Color.red("Creator"), Color.red("Attendees"), Color.red("Link")]
+        day_events  = table_calendar(service, str_start_all_week_dates, str_end_all_week_dates, calendar_email)
+        weekly_events.extend(day_events)
+       
+    print(tabulate(weekly_events, headers, tablefmt="simple"))
